@@ -1,0 +1,200 @@
+{% extends "layouts/base.html" %}
+{% block title %} {{ super() }} | Admin {% endblock %}
+ {% block content %}<!-- component -->
+
+ <script>
+	$(document).ready(function() {
+		
+		$("#ticket_type").change(function() {
+			var selectedTicketType = $(this).val();
+			$("#quantity").on('input',function() {
+				var ticketType = $("#ticket_type").val();
+				var quantity = $("#quantity").val();
+			
+				$.ajax({
+				  url: "/get_ticket_price",
+				  data: { "ticket_type": ticketType, "quantity": quantity },
+				  method: "POST",
+				  success: function(response) {
+					var totalPrice = response.price * quantity;
+					$("#ticket_total_price").val(Math.floor(totalPrice.toFixed(2))); // Update total price field
+					$("#quantity").attr("max", response.places_dispo);
+				}
+				});
+			  });
+			
+			
+			$.ajax({
+				url: "/get_ticket_price",
+				data: { "ticket_type": selectedTicketType },
+				method: "POST",
+				success: function(response) {
+					var formattedPrice = "£" + (response.price).toFixed(2);
+					$("#ticket_price").val(response.price);
+				}
+			});
+			$('#add-button').click(function() {
+				var ticketType = $("#ticket_type").val();
+				var ticketPrice = parseFloat($("#ticket_price").val());
+				var totalPrice=parseFloat($("#ticket_total_price").val());	
+				// Send AJAX request to add ticket and retrieve updated cart data
+				$.ajax({
+				  url: "/add_ticket",
+				  data: {
+					"ticket_type": ticketType, "quantity": quantity,
+					"ticket_price": ticketPrice,"total_price":totalPrice
+				  },
+				  method: "POST",
+				  success: function(response) {
+					if (response.success) {
+					  // Display cart data in the console
+					  console.log('Updated Cart Data:', response.cart);
+					} else {
+					  // Handle any errors from the server response
+					  console.error('Error adding ticket:', response.error);
+					}
+				  },
+				  error: function(jqXHR, textStatus, errorThrown) {
+					// Handle AJAX errors
+					console.error('AJAX error:', textStatus, errorThrown);
+				  }
+				});
+			  });
+		});
+
+		
+		
+	});
+	
+	
+</script>
+<section> 
+  <div class="container max-w-full  mx-auto py-12 px-6">
+	<img class="w-full" src="{{event.image}}" alt="Mountain">
+ </div>
+    <h1 class="text-center text-4xl text-black font-medium leading-snug tracking-wider">
+      {{ event.name }}
+    </h1>
+	<h1 class="text-center text-xl text-black font-light leading-snug tracking-wider">
+		{{ event.date.strftime("%A, %d %B %Y %H:%M") }}
+	  </h1>
+	
+ <div class="h-1 mx-auto bg-indigo-200 w-24 opacity-75 mt-4 rounded"></div>
+      <div class="max-w-full md:max-w-6xl mx-auto my-3 md:px-8">
+	   <div class=" container flex flex-wrap w-full md:w-3/4 justify-between ">
+		<div class="w-11/12  lg:w-1/3 sm:my-5 my-8 relative z-0 rounded-lg shadow-lg md:-ml-4">
+		  <div class="bg-white text-black rounded-lg mx-4  overflow-hidden">
+			    <div class="block text-left text-sm sm:text-md max-w-sm mx-auto mt-2 text-black px-8 lg:px-6">
+				   <h1 class="text-lg font-medium uppercase p-3 pb-0 text-center tracking-wide">{{ event.description }}</h1>
+			    </div>
+			  <div class="flex flex-wrap mt-3 px-6">
+			    <ul>
+				  <li class="flex items-center shadow-md">
+					  <div class=" rounded-full p-2 fill-current text-green-700">
+					    <img width="50" height="50" src="https://img.icons8.com/ios/50/address--v1.png" alt="address--v1"/>
+					  </div>
+					  <span class="text-gray-700 font-bold text-lg ml-3">{{salle.adresse}}</span>
+                  </li>
+				  <hr class="border border-black">
+                  <li class="flex items-center shadow-md">
+	                  <div class=" rounded-full p-2 fill-current text-green-700">
+						<img width="28" height="28" src="https://img.icons8.com/material-outlined/48/calendar--v1.png" alt="calendar--v1"/>
+  					  </div>
+                      <span class="text-gray-700 font-bold text-lg ml-3">{{event.date}}</span>
+				  </li>
+				  <hr class="border border-black shadow-lg">
+				  <li class="flex items-center">
+					    <div class=" rounded-full p-2 fill-current text-green-700">
+					              <svg class="w-6 h-6 align-middle" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+	                                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+	                                   <polyline points="22 4 12 14.01 9 11.01"></polyline>
+							      </svg>
+					      </div>
+					   <span class="text-gray-700 text-lg ml-3">No setup</span>
+				  </li>
+			   </ul>
+			 </div>
+			  <div class="block flex items-center p-8  uppercase">
+			  </div>
+		   </div>
+	      </div>
+		  <div id="success-message" style="display: none;"></div>
+		 <div class="w-full sm:w-2/3 lg:w-3/5 ml-8 sm:my-5 my-8 relative z-0 rounded-lg shadow-lg md:-ml-4">
+		   <div class="bg-white w-full px-20 py-2 before:mx-8 text-black rounded-lg shadow-inner shadow-lg overflow-hidden">
+				<h1 class="text-3xl font-bold mb-4">Contact Venue for Tickets</h1>
+		 
+			   <div class="flex flex-col md:flex-row md:justify-between">
+				  <div class="w-full md:w-3/4 mb-4"> <h2 class="text-lg font-medium mb-2">Ticket Information</h2>
+					<form id="ticket-form" method="POST" action="/add_ticket" >
+					   <div class="grid grid-col gap-4">
+						   <div class="flex items-center">
+							 <label for="ticketType" class="w-24 mr-2">Ticket Type:</label>
+
+							   <select id="ticket_type" name="ticket_type" class="border rounded-md px-2 py-1">
+								<option value="0">Selectionner</option>
+									{% for item in categories_place %}
+									<option value="{{item.name}}">{{item.name}}</option>
+									{% endfor %}
+							   </select>
+						   </div>
+		 
+						   <div class="flex items-center">
+								   <label for="ticket_price" class="w-24 mr-2">Cost (face value):</label>
+								   <input type="text" id="ticket_price" name="ticket_price" class="border rounded-md px-2 py-1" readonly>
+						   </div>
+		 
+						   <div class="flex items-center">
+								 <label for="quantity" class="w-24 mr-2">Quantity:</label>
+								 <input type="number" id="quantity" name="quantity" class="border rounded-md px-2 py-1" value="1" min="1">
+						   </div>
+		 
+						  <div class="flex items-center">
+								 <label for="ticket_total_price" class="w-24 mr-2">Total Price:</label>
+								 <input type="text" id="ticket_total_price" name="ticket_total_price" class="border rounded-md px-2 py-1" readonly>
+						  </div>
+					   </div>
+		 
+					  <button 
+					  id="add-button" 
+					  type="submit"
+					  class="mt-3 text-lg font-semibold 
+	                     bg-black w-full text-white rounded-lg 
+	                       px-6 py-3 block shadow-xl hover:bg-gray-700
+                           transform transition duration-200 ease-in-out hover:-translate-y-0.25 hover:scale-110">
+	                           <a href="#">Acheter Tickets</a>
+					  </button>
+					</form>
+				  </div>
+			  </div>
+		  </div>
+		 </div>	
+		 <div class="container">
+			<table class="text-left w-full">
+				<thead class="bg-black flex text-white w-full">
+					<tr class="flex w-full mb-4">
+						<th class="p-4 w-1/4">One</th>
+						<th class="p-4 w-1/4">Two</th>
+						<th class="p-4 w-1/4">Three</th>
+						<th class="p-4 w-1/4">Four</th>
+					</tr>
+				</thead>
+			<!-- Remove the nasty inline CSS fixed height on production and replace it with a CSS class — this is just for demonstration purposes! -->
+				<tbody class="bg-grey-light flex flex-col items-center justify-between overflow-auto w-full" style="height: 50vh;">
+					{% for item in cart%}
+					<tr class="flex w-full mb-4">
+						<td class="p-4 w-1/4">{{item["ticket_type"]}}</td>
+						<td class="p-4 w-1/4">{{item["quantity"]}}</td>
+						<td class="p-4 w-1/4">{{item["price"]}}</td>
+						<td class="p-4 w-1/4">{{item["total_price"]}}</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>	
+        </div>
+      </div>
+    </div>
+</section>
+
+
+{% endblock %}

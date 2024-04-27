@@ -1,0 +1,48 @@
+{% extends "layouts/base.html" %}
+{% block title %} {{ super() }} | Admin {% endblock %}
+{% block content %}
+
+
+<div class="container px-4 py-16">
+    <div class="flex flex-col-2 ">
+      <div class="flex flex-col w-3 flex-grow items-center shadow-md">
+        <h1 class="text-3xl font-bold text-gray-800">Refine your search</h1>
+  
+        <div class="shadow-md bg-white rounded-md px-4 py-4 mt-8">
+          <div class="flex flex-wrap gap-2">
+            <input type="text" id="search-bar" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Search">
+          </div>
+          <div class="flex flex-col gap-2">
+            <div class="flex flex-col">
+              <div class="flex items-center">
+                <input type="checkbox" id="checkbox-dance" name="event-type" value="dance">
+                <label for="checkbox-dance" class="flex items-center">Dance And Clubs</label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" id="checkbox-rock" name="event-type" value="rock">
+                <label for="checkbox-rock" class="flex items-center">Rock</label>
+              </div>
+  
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <div class="ml-5 overflow-auto shadow-md px-8 flex flex-col-2 w-30 h-screen flex-grow bg-white rounded-md ">
+        <ul class="gap-4 w-full">
+          <li class="w-full mt-20 my-auto md:w-1/2 lg:w-1/3 px-8 py-8 bg-white rounded-md shadow-md flex flex-col items-start">
+            <h2 class="text-xl font-bold text-gray-800">A Complete Idiot's Guide To New Zealand</h2>
+            <p class="text-gray-600">The Old Woollen, Leeds</p>
+            <span class="text-gray-400">Thu 12 Sep 2024, 20:00</span>
+          </li>
+  
+          <li class="w-full mt-8 md:w-1/2 lg:w-1/3 px-4 py-4 bg-white rounded-md shadow-md flex flex-col items-start">
+            <h2 class="text-xl font-bold text-gray-800">A Foreigners Journey</h2>
+            <p class="text-gray-600">The Flowerpot, Derby</p>
+            <span class="text-gray-400">Other Music</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+{% endblock %}

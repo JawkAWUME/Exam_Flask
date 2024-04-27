@@ -1,0 +1,90 @@
+<header class="header top-0 bg-white shadow-md flex  justify-between px-18 ">
+    <div class="flex flex-wrap">
+      
+          <!-- navbar -->
+        <nav class="flex justify-between bg-gray-900 text-white w-screen">
+          <div class="px-5 xl:px-12 py-6 flex w-full items-center">
+            <a class="text-3xl font-bold font-heading" href="/">
+              <!-- <img class="h-9" src="logo.png" alt="logo"> -->
+              Jawk's Reserv.
+            </a>
+            <!-- Nav Links -->
+            <div class='max-w-lg mx-auto'>
+              <div class="relative flex items-center w-full h-12 rounded-lg focus-within:shadow-lg bg-white overflow-hidden">
+                  <div class="grid place-items-center h-full w-12 text-gray-300 mx-5">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                  </div>
+                  <input
+                  style="width:150vh"
+                  class="peer h-full w-full outline-none text-sm text-gray-700 pr-2"
+                  type="text"
+                  id="search-input"
+                  placeholder="Faites votre recherche..." />
+                  
+              </div>
+              <div id="results-container">
+              </div> 
+          </div>
+            <!-- Header Icons -->
+           
+        </nav>
+    </div>
+    </header>
+    <script>
+        $(document).ready(function() {
+            $("#search-input").on('input', function() {
+              const searchTerm = $("#search-input").val().trim().toLowerCase();
+          
+              if (searchTerm === "") {
+                return; // Ignore empty searches
+              }
+          
+              // Send search query to Flask backend using AJAX
+              $.ajax({
+                url: "/search",
+                type: "POST",
+                data: { searchTerm: searchTerm },
+                success: function(data) {
+                                      
+                  // Display search results
+                  const resultsContainer = $("#results-container");
+                  resultsContainer.empty(); // Clear previous results
+                
+                  if (data.length === 0) {
+                    resultsContainer.append(`
+                      <div class="card mb-2 bg-white-200 overflow-y-scroll border border-gray-300 p-2 rounded">
+                        <p>Aucun résultat trouvé.</p>
+                      </div>
+                    `); // No results message in French
+                  } else {
+                    resultsContainer.attr("style", "height: 40vh; background-color: white; color: black; overflow-y: scroll; border: 1px solid gray; padding: 20px; border-radius: 5px; margin-top: 20px;");
+                    if (searchTerm !== "") {
+                    for (const result of data) {
+                      const highlightedTitle = highlightTerm(result.name, searchTerm);
+                      const highlightedDescription = highlightTerm(result.description, searchTerm);
+          
+                      resultsContainer.append(`
+                        <div class="border border-black rounded w-full">
+                          <h3 class="font-bold text-lg">${highlightedTitle}</h3>
+                          <p>${highlightedDescription}</p>
+                        </div>
+                      `);
+                    }
+                  }
+                }
+                },
+                error: function(error) {
+                  console.error("Error fetching search results:", error);
+                }
+              });
+            });
+          });
+          
+          function highlightTerm(text, term) {
+            const regex = new RegExp(term, 'gi'); // Create case-insensitive regular expression
+            return text.replace(regex, match => `<mark class="bg-gray-900 text-white">${match}</mark>`); // Wrap matched terms in a highlight element
+          }
+          
+  </script>
