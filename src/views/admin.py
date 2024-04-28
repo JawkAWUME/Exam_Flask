@@ -8,11 +8,64 @@ def home_admin():
     events=load_tours_and_events()
     print(events)
     return render_template("admin/home.html", categories_type=load_events_categories(),events=events)
- 
+
+
+@login_manager.user_loader
+def load_user(user_id):
+        """Flask-Login callback to load a user from the database."""
+        return User.query.get(int(user_id))
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))  # Redirect to your home page
+
+    if request.method == 'POST':
+            username = request.form['username']
+            password = request.form['password']
+            user = User.query.filter_by(username=username).first()
+
+            if user and user.verify_password(password):
+                login_user(user, remember=request.form.get('remember_me'))
+                return redirect(url_for('home'))  # Redirect to your home page
+            else:
+                flash('Invalid username or password.')
+
+    return render_template('security/login.html')
+
+# Signup function
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'GET':
+        return render_template('signup.html', title='Create an Account')
+
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        if User.query.filter_by(username=username).first():
+            flash('Username already exists')
+            return redirect(url_for('signup'))
+
+        user = User(username=username, password_hash=generate_password_hash(password))
+        db.session.add(user)
+        db.session.commit()
+
+        flash('Account created successfully!')
+        return redirect(url_for('login'))
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
+
+
 
 @app.route("/event/<categorie>")
 def event_detail(categorie):
-    return render_template("admin/vue_detail_categorie.html",categorie=str.capitalize(categorie))
+    categorie=str.capitalize(categorie)
+    events=load_events_by_categorie(categorie)
+    return render_template("admin/vue_detail_categorie.html",categorie=categorie,events=events)
 
 
 @app.route("/event/plan/<name>")

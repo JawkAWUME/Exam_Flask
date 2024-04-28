@@ -1,11 +1,13 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask import *
 from flask_migrate import Migrate
-from flask_login import UserMixin,LoginManager
+from flask_login import UserMixin, LoginManager, login_user, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app=Flask(__name__, template_folder='c:/Users/HP/Documents/Exam_Flask/src/templates/')
 app.config.from_pyfile('../../config.py')
 login_manager = LoginManager(app)
+login_manager.init_app(app)
 db=SQLAlchemy(app)
 migrate = Migrate(app, db) 
 
@@ -15,6 +17,14 @@ class User(UserMixin,db.Model):
     username = db.Column(db.String(50), unique=True)
     password =db.Column(db.String(50))
     
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+
+
 class Event(db.Model):
     __tablename__='events'
     id = db.Column(db.Integer, primary_key=True)
