@@ -18,26 +18,32 @@ def load_user(user_id):
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('home'))  # Redirect to your home page
-
+        return redirect(url_for('home_admin'))
+    # Redirect to your home page
     if request.method == 'POST':
-            username = request.form['username']
+            username = request.form['login']
             password = request.form['password']
+           
             user = User.query.filter_by(username=username).first()
-
+            user.password=generate_password_hash(user.password)
             if user and user.verify_password(password):
                 login_user(user, remember=request.form.get('remember_me'))
-                return redirect(url_for('home'))  # Redirect to your home page
+                
+                return redirect(url_for('home_admin'))  # Redirect to your home page
             else:
                 flash('Invalid username or password.')
 
     return render_template('security/login.html')
 
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template('errors/404.html'), 404
+
 # Signup function
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'GET':
-        return render_template('signup.html', title='Create an Account')
+        return render_template('security/register.html', title='Create an Account')
 
     if request.method == 'POST':
         username = request.form['username']
@@ -47,7 +53,7 @@ def signup():
             flash('Username already exists')
             return redirect(url_for('signup'))
 
-        user = User(username=username, password_hash=generate_password_hash(password))
+        user = User(username=username, password=generate_password_hash(password))
         db.session.add(user)
         db.session.commit()
 
@@ -141,9 +147,7 @@ def add_ticket():
     db.session.commit()
     return redirect(url_for('event_plan',name=data["event"].name))
 
-
-@app.route("/search", methods=["POST"])
-def search():
+def fetch_data():
     searchTerm = request.form["searchTerm"].lower()
     events=get_research_tours_and_events(searchTerm)
     filtered_data = [
@@ -165,7 +169,12 @@ def search():
     ]
     return jsonify(filtered_data)
 
-@app.route("/search_all")
+@app.route("/search", methods=["POST"])
+def search():
+    return fetch_data()
+    
+
+@app.route("/search_all", methods=["GET","POST"])
 def search_view():
-    return render_template("admin/search.html")
+    return render_template("admin/search.html",categories_type=load_events_categories())
   
